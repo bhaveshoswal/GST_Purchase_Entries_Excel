@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Flask Intro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="static/css/bootstrap.min.css" rel="stylesheet" media="screen">
+
+        <meta charset="UTF-8">
+    <title>GSTPurchase Entry</title>
+
+	<script>
+		function AddData() {
+		    var select = document.getElementById("company_name");
+
+            var rows = "";
+            var date = document.getElementById("date").value;
+            var company_name =select.options[select.selectedIndex].text;
+            var gst = document.getElementById("gst").value;
+            var bill = document.getElementById("bill").value;
+            var tax = document.getElementById("tax").value;
+            var gross = document.getElementById("gross").value;
+            var cgst = document.getElementById("cgst").value;
+            var sgst = document.getElementById("sgst").value;
+            var net_0 = 0.0
+            var net_5 = 0.0
+            var net_12 = 0.0
+            var net_18 = 0.0
+            var net_28 = 0.0
+
+            if (document.getElementById("5_%").checked) {
+              net_5 = total_tax;
+            }
+
+            if (document.getElementById("12_%").checked) {
+              net_12 = total_tax;
+            }
+
+            if (document.getElementById("18_%").checked) {
+              net_18 = total_tax;
+            }
+
+            if (document.getElementById("28_%").checked) {
+              net_28 = total_tax;
+            }
+
+            rows += "<td>" + date + "</td>" +
+                    "<td>" + company_name + "</td>" +
+                    "<td>" + gst + "</td>" +
+                    "<td>" + bill + "</td>" +
+                    "<td>" + tax + "</td>" +
+                    "<td>" + gross + "</td>" +
+                    "<td>" + net_0 + "</td>" +
+                    "<td>" + net_5 + "</td>" +
+                    "<td>" + net_12 + "</td>" +
+                    "<td>" + net_18 + "</td>" +
+                    "<td>" + net_28 + "</td>" +
+                    "<td>" + cgst + "</td>" +
+                    "<td>" + sgst + "</td>"
+
+            var tbody = document.querySelector("#list tbody");
+            var tr = document.createElement("tr");
+            tr.innerHTML = rows;
+            tbody.appendChild(tr)
+		}
+
+        var total_tax;
+        function cal(value){
+          var tax_value = document.getElementById("tax").value;
+          total_tax = tax_value * value;
+          document.getElementById("gross").value =  parseFloat(tax_value) + parseFloat(total_tax);
+          document.getElementById("cgst").value = total_tax / 2.0;
+          document.getElementById("sgst").value = total_tax / 2.0;
+        }
+
+        var company_name = {{lists|tojson}}
+        var i;
+        window.onload = function() {
+            var select = document.getElementById("company_name");
+            for (i in company_name) {
+              var opt = document.createElement("option");
+              opt.value = company_name[i];
+              opt.innerHTML = i;
+              select.appendChild(opt);
+            }
+        }
+
+      function set_gst_no() {
+      var select = document.getElementById("company_name");
+      document.getElementById("gst").value = select.options[select.selectedIndex].value;
+      }
+
+      function ExportToExcel(){
+         var htmltable = document.getElementById('list');
+         var html = htmltable.outerHTML;
+         console.log(html)
+         http = new XMLHttpRequest()
+         http.open("post", "to_excel")
+
+         //Send the proper header information along with the request
+        http.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+        http.onreadystatechange = function() { // Call a function when the state changes.
+        if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
+            // Request finished. Do processing here.
+            alert("Created purchase_entries.xlsx");
+            }
+        }
+         http.send("table_data="+html);
+         <!--window.open('data:application/vnd.ms-excel,' + encodeURIComponent(html));-->
+      }
+
+	</script>
+  </head>
+
+
+  <body>
+    <div class="container">
+      <h1>Kiran Stores</h1>
+      <br>
+      <!--<p>Click <a href="/">here</a> to go home.</p>-->
+
+      <form>
+        <label for="date">Date</label>
+        <input type="date" id="date" name="date" required><br>
+
+        <label for="company_name">Company Name</label>
+        <select id="company_name" onchange="set_gst_no();">
+            <option>Company Name</option>
+        </select><br>
+
+        <label for="gst">GST No.</label>
+        <input type="text" id="gst" name="gst" required readonly><br>
+
+        <label for="bill">Bill No.</label>
+        <input type="number" id="bill" name="bill" required><br>
+
+        <label for="tax">Tax Amount</label>
+        <input type="number" id="tax" name="tax" required><br>
+
+        <div class="control" id="gst_rates">
+          <label for="0_%" class="radio"> <input type="radio" id="0_%" name="gst_rate" value="0.0" onclick="cal(this.value)" checked> Net 0% </label>
+
+          <label for="5_%" class="radio"> <input type="radio" id="5_%" value="0.05" name="gst_rate" onclick="cal(this.value)"> Net 5% </label>
+
+          <label for="12_%" class="radio"> <input type="radio" id="12_%" value="0.12" name="gst_rate" onclick="cal(this.value)"> Net 12% </label>
+
+          <label for="18_%" class="radio"> <input type="radio" id="18_%" value="0.18" name="gst_rate" onclick="cal(this.value)"> Net 18%</label>
+
+          <label for="28_%" class="radio"> <input type="radio" id="28_%" value="0.28" name="gst_rate" onclick="cal(this.value)"> Net 28%</label>
+        </div>
+
+        <label for="gross">Gross Amount</label>
+        <input type="number" id="gross" name="gross" value="0" readonly><br>
+
+        <label for="cgst">CGST</label>
+        <input type="number" id="cgst" name="cgst" value="0.0" readonly><br>
+
+        <label for="sgst">SGST</label>
+        <input type="number" id="sgst" name="sgst" value="0.0" readonly><br>
+
+		<input type="button" onclick="AddData()" value="Add"/>
+		<input type="button" onclick="ExportToExcel()" value="Excel"/>
+        <!--<a href=# id=test><button class='btn btn-default'>Excel</button></a>-->
+      </form>
+    </div>
+
+    <div id = "tab">
+      <table id = "list" cellspacing = "0px" cellpadding = "20px">
+        <thead>
+          <tr>
+            <td>Date</td>
+            <td>Company Name</td>
+            <td>GST No.</td>
+            <td>Bill No.</td>
+            <td>Tax Amount</td>
+            <td>Gross Amount</td>
+            <td>Net 0%</td>
+            <td>Net 5%</td>
+            <td>Net 12%</td>
+            <td>Net 18%</td>
+            <td>Net 28%</td>
+            <td>CGST</td>
+            <td>SGST</td>
+          </tr>
+         </thead>
+        <tbody>
+        </tbody>
+      </table>
+    </div>
+
+  </body>
+</html>
